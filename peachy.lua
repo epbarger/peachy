@@ -80,6 +80,7 @@ peachy.__index = peachy
   self.tag = nil
   self.tagName = nil
   self.direction = nil
+  self.frameSpeed = nil
 
   if initialTag then
     self:setTag(initialTag)
@@ -142,12 +143,14 @@ end
 -- @tparam number sy the y scaling.
 -- @tparam number ox the origin offset x.
 -- @tparam number oy the origin offset y.
-function peachy:draw(x, y, rot, sx, sy, ox, oy)
+-- @tparam number kx the x shearing factor.
+-- @tparam number ky the y shearing factor.
+function peachy:draw(x, y, rot, sx, sy, ox, oy, kx, ky)
   if not self.frame then
     return
   end
 
-  love.graphics.draw(self.image, self.frame.quad, x, y, rot or 0, sx or 1, sy or 1, ox or 0, oy or 0)
+  love.graphics.draw(self.image, self.frame.quad, x, y, rot or 0, sx or 1, sy or 1, ox or 0, oy or 0, kx or 0, ky or 0)
 end
 
 --- Update the animation.
@@ -200,7 +203,12 @@ function peachy:nextFrame()
   -- Get next frame
   self.frame = self.tag.frames[self.frameIndex]
 
-  self.frameTimer = cron.after(self.frame.duration, self.nextFrame, self)
+  self.frameTimer = cron.after(self.frameSpeed or self.frame.duration, self.nextFrame, self)
+end
+
+-- Set a fixed frame speed (override frame durations)
+function peachy:setFrameSpeed(ms)
+  self.frameSpeed = ms
 end
 
 --- Check for callbacks
@@ -243,12 +251,12 @@ end
 
 --- Provides width stored in the metadata of a current frame
 function peachy:getWidth()
-    return self._jsonData.frames[self.frameIndex].frame.w
+  return self._jsonData.frames[self.frameIndex].frame.w
 end
 
 --- Provides height stored in the metadata of a current frame
 function peachy:getHeight()
-    return self._jsonData.frames[self.frameIndex].frame.h
+  return self._jsonData.frames[self.frameIndex].frame.h
 end
 
 --- Internal: handles the ping-pong animation type.
